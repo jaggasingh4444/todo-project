@@ -15,13 +15,15 @@
 
 body {
     font-family: 'Roboto', sans-serif;
-    background: url('/background.jpg') no-repeat center center fixed;
-    background-size: cover;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    overflow: hidden;
 }
+
+/* Blurred background */
 body::before {
     content: "";
     position: absolute;
@@ -31,15 +33,15 @@ body::before {
     height: 100%;
     background: url('/background.jpg') no-repeat center center fixed;
     background-size: cover;
-    filter: blur(8px); /* Adjust blur intensity */
+    filter: blur(8px);
     z-index: -1;
 }
 
 .register-wrapper {
-    width: 100%;
-    max-width: 450px;
+    width: 90%;
+    max-width: 400px;
     background: rgba(255,255,255,0.95);
-    padding: 40px 30px;
+    padding: 35px 25px;
     border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     position: relative;
@@ -47,8 +49,8 @@ body::before {
 
 h2 {
     text-align: center;
-    margin-bottom: 15px;
-    font-size: 28px;
+    margin-bottom: 20px;
+    font-size: 26px;
     color: #333;
 }
 
@@ -56,7 +58,7 @@ h2 {
 .clear-all {
     position: absolute;
     top: 15px;
-    right: 20px;
+    right: 15px;
     cursor: pointer;
     color: #2575fc;
     font-size: 18px;
@@ -71,20 +73,23 @@ h2 {
     display: flex;
     flex-direction: column;
     margin-bottom: 15px;
+    position: relative;
 }
 
 .form-group label {
     margin-bottom: 5px;
     font-weight: 500;
     color: #333;
+    font-size: 14px;
 }
 
 .form-group input {
     padding: 10px 12px;
     border: 1px solid #ccc;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 15px;
     transition: all 0.3s ease;
+    width: 100%;
 }
 
 .form-group input:focus {
@@ -97,7 +102,8 @@ h2 {
 .icon-container {
     position: absolute;
     right: 10px;
-    top: 36px;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     gap: 8px;
 }
@@ -105,7 +111,7 @@ h2 {
 .icon-container i {
     cursor: pointer;
     color: #2575fc;
-    font-size: 14px;
+    font-size: 16px;
     user-select: none;
 }
 
@@ -138,6 +144,7 @@ p.error {
     font-weight: 500;
     margin-bottom: 10px;
     text-align: center;
+    font-size: 14px;
 }
 
 p a {
@@ -149,12 +156,33 @@ p a:hover {
     color: #6a11cb;
 }
 
-/* Responsive */
+/* Mobile Adjustments */
 @media (max-width: 480px) {
-    .register-wrapper { padding: 30px 20px; }
-    h2 { font-size: 24px; }
-    .form-group input { font-size: 15px; padding: 10px; }
-    button { font-size: 15px; padding: 10px; }
+    .register-wrapper {
+        padding: 25px 15px;
+    }
+    h2 { 
+        font-size: 22px; 
+    }
+    .form-group label { 
+        font-size: 13px; 
+    }
+    .form-group input { 
+        font-size: 14px; 
+        padding: 8px 10px; 
+    }
+    .icon-container i { 
+        font-size: 14px; 
+    }
+    button { 
+        font-size: 14px; 
+        padding: 10px; 
+    }
+    .clear-all { 
+        font-size: 16px; 
+        top: 10px; 
+        right: 10px; 
+    }
 }
 </style>
 </head>
@@ -179,7 +207,7 @@ p a:hover {
             <input type="email" id="email" name="email" required>
         </div>
 
-        <div class="form-group" style="position:relative;">
+        <div class="form-group">
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
             <div class="icon-container">
@@ -187,7 +215,7 @@ p a:hover {
             </div>
         </div>
 
-        <div class="form-group" style="position:relative;">
+        <div class="form-group">
             <label for="confirmPassword">Confirm Password</label>
             <input type="password" id="confirmPassword" name="confirmPassword" required>
             <div class="icon-container">
