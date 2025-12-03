@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task List</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <%- include('navbar') %>
+
+<div class="container">
+    <h1 style="color: #FFFFFF; font-size: 32px; font-weight: 700; margin-bottom: 20px;">
+    Latest Post</h1>
+
+
+    <% 
+        let userTasksCount = 0;
+        if(session.user) {
+            userTasksCount = result.filter(task => task.userId && task.userId.toString() === session.user._id.toString()).length;
+        }
+    %>
+    <% if(session.user){ %>
+        <p class="task-count"><strong>You have added <%= userTasksCount %> post<%= userTasksCount === 1 ? '' : 's' %>.</strong></p>
+    <% } %>
+
+    <ul class="task-list">
+        <% for (let i = 0; i < result.length; i++) { 
+            const task = result[i];
+        %>
+            <li class="task-item">
+
+                <div class="task-title">
+                    <%= task.title %>
+                </div>
+
+                <div class="task-description">
+                    <%= task.description %>
+                </div>
+
+                <!-- Buttons only for owner -->
+                <% if (
+                    session.user &&
+                    task.userId && 
+                    session.user._id.toString() === task.userId.toString()
+                ) { %>
+                    <div class="task-actions">
+                        <a href="/update/<%= task._id %>" class="update-item">Update</a>
+                        <a href="#" onclick="confirmDelete('<%= task._id %>')" class="delete-item">Delete</a>
+                    </div>
+                <% } %>
+
+            </li>
+        <% } %>
+    </ul>
+</div>
+
+<!-- Footer -->
+    <footer class="footer">
+        &copy; 2025 Jagdish pandey. All rights reserved.
+    </footer>
+
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Delete Confirmation -->
+    <script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This task will be permanently deleted!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it",
+            cancelButtonText: "Cancel",
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "/delete/" + id;
+            }
+        });
+    }
+    </script>
+
+
+</body>
+</html>

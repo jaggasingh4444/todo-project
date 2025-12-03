@@ -1,0 +1,19 @@
+<nav class="navbar">
+    <ul>
+        <% if (session.user) { %>
+            <li><a href="/">Home</a></li>
+            <li><a href="/add">Add Blog</a></li>
+
+            <li>
+                <a href="/logout" class="logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+            </li>
+        <% } else { %>
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register">Register</a></li>
+        <% } %>
+    </ul>
+</nav>
+
+<!-- FontAwesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Task</title>
+    <link rel="stylesheet" href="/styles.css">    
+</head>
+<body>
+    <%- include('navbar') %>    
+
+    <div class="container">
+        <h1 style="color: #FFFFFF; font-size: 32px; font-weight: 700; margin-bottom: 20px;">
+    Add New Post</h1>
+
+        <form class="todo-form" action="/add" method="post">
+            <input class="input" type="text" name="title" placeholder="Enter Title Name" required><br>            
+            
+            <textarea class="input" name="description" placeholder="Enter description" required></textarea><br>
+            
+            <button class="btn">Create Post</button>
+        </form>
+    </div>
+    <!-- Footer -->
+    <footer class="footer">
+        &copy; 2025 Jagdish pandey. All rights reserved.
+    </footer>
+</body>
+</html>

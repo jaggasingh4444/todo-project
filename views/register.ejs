@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<style>
+* { box-sizing: border-box; margin:0; padding:0; }
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background: url('/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    filter: blur(8px); /* Adjust blur intensity */
+    z-index: -1;
+}
+
+.register-wrapper {
+    width: 100%;
+    max-width: 450px;
+    background: rgba(255,255,255,0.95);
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 28px;
+    color: #333;
+}
+
+/* Clear all icon at top-right */
+.clear-all {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    cursor: pointer;
+    color: #2575fc;
+    font-size: 18px;
+    transition: color 0.3s ease;
+}
+
+.clear-all:hover {
+    color: #6a11cb;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #2575fc;
+    box-shadow: 0 0 8px rgba(37,117,252,0.4);
+}
+
+/* Show password icon inside input group */
+.icon-container {
+    position: absolute;
+    right: 10px;
+    top: 36px;
+    display: flex;
+    gap: 8px;
+}
+
+.icon-container i {
+    cursor: pointer;
+    color: #2575fc;
+    font-size: 14px;
+    user-select: none;
+}
+
+.icon-container i:hover {
+    color: #6a11cb;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: #2575fc;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: #6a11cb;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+p.error {
+    color: red;
+    font-weight: 500;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+p a {
+    color: #2575fc;
+    text-decoration: none;
+}
+
+p a:hover {
+    color: #6a11cb;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .register-wrapper { padding: 30px 20px; }
+    h2 { font-size: 24px; }
+    .form-group input { font-size: 15px; padding: 10px; }
+    button { font-size: 15px; padding: 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="register-wrapper">
+    <h2>Create Account</h2>
+
+    <!-- Clear All Icon -->
+    <i class="fa-solid fa-arrows-rotate clear-all" title="Clear All Fields" onclick="clearAllFields()"></i>
+
+    <p class="error" id="error"><%= error %></p>
+
+    <form id="registerForm" action="/register" method="POST">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group" style="position:relative;">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <div class="icon-container">
+                <i class="fa-solid fa-eye" onclick="togglePassword('password')"></i>
+            </div>
+        </div>
+
+        <div class="form-group" style="position:relative;">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+            <div class="icon-container">
+                <i class="fa-solid fa-eye" onclick="togglePassword('confirmPassword')"></i>
+            </div>
+        </div>
+
+        <button type="submit">Register</button><br><br>
+        <p>Already have an account? <a href="/login">Login</a></p>
+    </form>
+</div>
+
+<script>
+function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === "password" ? "text" : "password";
+}
+
+// Clear all fields
+function clearAllFields() {
+    document.getElementById('name').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('confirmPassword').value = '';
+    document.getElementById('error').textContent = '';
+}
+
+// Password validation
+const form = document.getElementById("registerForm");
+const errorMsg = document.getElementById("error");
+
+form.addEventListener("submit", function(e) {
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    if (!strongPassword.test(password)) {
+        e.preventDefault();
+        errorMsg.textContent = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        errorMsg.textContent = "Passwords do not match.";
+        return;
+    }
+
+    errorMsg.textContent = "";
+});
+</script>
+
+</body>
+</html>

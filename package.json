@@ -1,0 +1,20 @@
+{
+  "name": "todo-list-project",
+  "version": "1.0.0",
+  "description": "node js project",
+  "license": "ISC",
+  "author": "Jagdish Pandey",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "mongodb": "^7.0.0",
+    "nodemon": "^3.1.11"
+  }
+}

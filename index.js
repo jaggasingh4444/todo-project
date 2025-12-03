@@ -1,0 +1,234 @@
+import express from 'express';
+import path from 'path';
+import { MongoClient, ObjectId } from 'mongodb';
+import session from 'express-session';
+import bcrypt from 'bcrypt';
+
+const app = express();
+const publicPath = path.resolve('public');
+app.use(express.static(publicPath));
+app.set("view engine", 'ejs');
+
+// ---------------------- DATABASE ----------------------
+const dbName = "node-project";
+const todoCollection = "todo";
+const userCollection = "users";
+const url = "mongodb://localhost:27017/";
+const client = new MongoClient(url);
+
+const connection = async () => {
+    const connect = await client.connect();
+    return connect.db(dbName);
+};
+
+// ---------------------- MIDDLEWARE ----------------------
+app.use(express.urlencoded({ extended: false }));
+
+// SESSION
+app.use(
+    session({
+        secret: "todo-secret-key",
+        resave: false,
+        saveUninitialized: true,
+    })
+);
+
+// Make session available in all EJS files
+app.use((req, res, next) => {
+    res.locals.session = req.session;
+    next();
+});
+
+// AUTH MIDDLEWARE
+function checkAuth(req, resp, next) {
+    if (!req.session.user) {
+        return resp.redirect("/login");
+    }
+    next();
+}
+
+// ---------------------- AUTH ROUTES ----------------------
+
+// LOGIN PAGE
+app.get("/login", (req, res) => {
+    res.render("login", { error: "" });
+});
+
+// LOGIN POST
+app.post("/login", async (req, res) => {
+    const db = await connection();
+    const users = db.collection(userCollection);
+
+    const { email, password } = req.body;
+
+    const user = await users.findOne({ email });
+    if (!user) {
+        return res.render("login", { error: "User not found!" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+        return res.render("login", { error: "Incorrect password!" });
+    }
+
+    req.session.user = user;
+    res.redirect("/add");
+});
+
+// REGISTER PAGE
+app.get("/register", (req, res) => {
+    res.render("register", { error: "" });
+});
+
+// REGISTER POST
+app.post("/register", async (req, res) => {
+    const db = await connection();
+    const users = db.collection(userCollection);
+
+    const { name, email, password } = req.body;
+
+    const existing = await users.findOne({ email });
+    if (existing) {
+        return res.render("register", { error: "Email already registered!" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    await users.insertOne({
+        name,
+        email,
+        password: hashed,
+        created_at: new Date(),
+    });
+
+    res.redirect("/login");
+});
+
+// LOGOUT
+app.get("/logout", (req, res) => {
+    req.session.destroy();
+    res.redirect("/login");
+});
+
+// ---------------------- TODO ROUTES ----------------------
+
+// LIST TASKS
+app.get("/", checkAuth, async (req, resp) => {
+    const db = await connection();
+    const collection = db.collection(todoCollection);
+    const result = await collection.find().toArray();
+    resp.render("list", { result });
+});
+
+// ADD TASK PAGE
+app.get("/add", checkAuth, (req, resp) => {
+    resp.render("add", { success: req.query.success });
+});
+
+// ADD TASK POST
+app.post("/add", checkAuth, async (req, resp) => {
+    try {
+        const db = await connection();
+        const collection = db.collection(todoCollection);
+
+        // ⭐ Add date automatically to description
+        const today = new Date();
+        const formattedDate = today.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+        const descriptionWithDate = `[Added on: ${formattedDate}] ${req.body.description}`;
+
+        const newTask = {
+            title: req.body.title,
+            description: descriptionWithDate,
+            userId: req.session.user._id,
+            completed: false,
+            created_at: today
+        };
+
+        const result = await collection.insertOne(newTask);
+
+        if (result.insertedId) {
+            resp.redirect("/add?success=1");
+        } else {
+            resp.redirect("/add?success=0");
+        }
+    } catch (err) {
+        console.log(err);
+        resp.redirect("/add?success=0");
+    }
+});
+
+// DELETE TASK (only owner)
+app.get("/delete/:id", checkAuth, async (req, resp) => {
+    try {
+        const db = await connection();
+        const collection = db.collection(todoCollection);
+
+        const result = await collection.deleteOne({
+            _id: new ObjectId(req.params.id),
+            userId: req.session.user._id
+        });
+
+        if (result.deletedCount > 0) {
+            resp.redirect("/");
+        } else {
+            resp.send("❌ You can delete only your own tasks!");
+        }
+
+    } catch (err) {
+        console.log(err);
+        resp.send("Error deleting task");
+    }
+});
+
+// SHOW UPDATE PAGE (only owner)
+app.get("/update/:id", checkAuth, async (req, resp) => {
+    const db = await connection();
+    const collection = db.collection(todoCollection);
+
+    const result = await collection.findOne({
+        _id: new ObjectId(req.params.id),
+        userId: req.session.user._id
+    });
+
+    if (result) {
+        resp.render("update", { result });
+    } else {
+        resp.send("❌ You can update only your own tasks!");
+    }
+});
+
+// UPDATE TASK POST (only owner)
+app.post("/update/:id", checkAuth, async (req, resp) => {
+    const db = await connection();
+    const collection = db.collection(todoCollection);
+
+    const id = req.params.id;
+    const { title, description } = req.body;
+
+    // Optional: Keep original date in description if already present
+    const task = await collection.findOne({ _id: new ObjectId(id) });
+    let updatedDescription = description;
+    if (task && task.description.startsWith("[Added on:")) {
+        const datePart = task.description.split("]")[0] + "]";
+        updatedDescription = `${datePart} ${description.replace(datePart, "").trim()}`;
+    }
+
+    const result = await collection.updateOne(
+        {
+            _id: new ObjectId(id),
+            userId: req.session.user._id
+        },
+        {
+            $set: { title, description: updatedDescription }
+        }
+    );
+
+    if (result.matchedCount > 0) {
+        return resp.redirect("/");
+    }
+
+    resp.send("❌ You cannot update another user's task");
+});
+
+// ---------------------- SERVER ----------------------
+app.listen(3200, () => console.log("Server running on port 3200"));
