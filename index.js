@@ -3,6 +3,7 @@ import path from 'path';
 import { MongoClient, ObjectId } from 'mongodb';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
+import 'dotenv/config'; // loads .env automatically
 
 const app = express();
 const publicPath = path.resolve('public');
@@ -13,12 +14,17 @@ app.set("view engine", 'ejs');
 const dbName = "node-project";
 const todoCollection = "todo";
 const userCollection = "users";
-const url = "mongodb://localhost:27017/";
-const client = new MongoClient(url);
+const client = new MongoClient(process.env.MONGO_URI);
 
 const connection = async () => {
-    const connect = await client.connect();
-    return connect.db(dbName);
+    try {
+        await client.connect();
+        console.log("✅ Connected to MongoDB Atlas");
+        return client.db(dbName);
+    } catch (err) {
+        console.error("❌ MongoDB connection error:", err);
+        process.exit(1);
+    }
 };
 
 // ---------------------- MIDDLEWARE ----------------------
@@ -27,7 +33,7 @@ app.use(express.urlencoded({ extended: false }));
 // SESSION
 app.use(
     session({
-        secret: "todo-secret-key",
+        secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: true,
     })
@@ -60,16 +66,12 @@ app.post("/login", async (req, res) => {
     const users = db.collection(userCollection);
 
     const { email, password } = req.body;
-
     const user = await users.findOne({ email });
-    if (!user) {
-        return res.render("login", { error: "User not found!" });
-    }
+
+    if (!user) return res.render("login", { error: "User not found!" });
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-        return res.render("login", { error: "Incorrect password!" });
-    }
+    if (!match) return res.render("login", { error: "Incorrect password!" });
 
     req.session.user = user;
     res.redirect("/add");
@@ -86,14 +88,10 @@ app.post("/register", async (req, res) => {
     const users = db.collection(userCollection);
 
     const { name, email, password } = req.body;
-
     const existing = await users.findOne({ email });
-    if (existing) {
-        return res.render("register", { error: "Email already registered!" });
-    }
+    if (existing) return res.render("register", { error: "Email already registered!" });
 
     const hashed = await bcrypt.hash(password, 10);
-
     await users.insertOne({
         name,
         email,
@@ -116,7 +114,7 @@ app.get("/logout", (req, res) => {
 app.get("/", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
-    const result = await collection.find().toArray();
+    const result = await collection.find({ userId: req.session.user._id }).toArray();
     resp.render("list", { result });
 });
 
@@ -131,7 +129,6 @@ app.post("/add", checkAuth, async (req, resp) => {
         const db = await connection();
         const collection = db.collection(todoCollection);
 
-        // ⭐ Add date automatically to description
         const today = new Date();
         const formattedDate = today.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
         const descriptionWithDate = `[Added on: ${formattedDate}] ${req.body.description}`;
@@ -173,7 +170,6 @@ app.get("/delete/:id", checkAuth, async (req, resp) => {
         } else {
             resp.send("❌ You can delete only your own tasks!");
         }
-
     } catch (err) {
         console.log(err);
         resp.send("Error deleting task");
@@ -205,7 +201,6 @@ app.post("/update/:id", checkAuth, async (req, resp) => {
     const id = req.params.id;
     const { title, description } = req.body;
 
-    // Optional: Keep original date in description if already present
     const task = await collection.findOne({ _id: new ObjectId(id) });
     let updatedDescription = description;
     if (task && task.description.startsWith("[Added on:")) {
@@ -231,4 +226,5 @@ app.post("/update/:id", checkAuth, async (req, resp) => {
 });
 
 // ---------------------- SERVER ----------------------
-app.listen(3200, () => console.log("Server running on port 3200"));
+const PORT = process.env.PORT || 3200;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
