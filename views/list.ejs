@@ -7,20 +7,26 @@
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+
     <%- include('navbar') %>
 
 <div class="container">
+
     <h1 style="color: #FFFFFF; font-size: 32px; font-weight: 700; margin-bottom: 20px;">
-    Latest Post</h1>
+        Latest Post
+    </h1>
 
     <% 
         let userTasksCount = 0;
-        if(session.user) {
+        if (session.user) {
             userTasksCount = result.filter(task => task.userId && task.userId.toString() === session.user._id.toString()).length;
         }
     %>
-    <% if(session.user){ %>
-        <p class="task-count"><strong>You have added <%= userTasksCount %> post<%= userTasksCount === 1 ? '' : 's' %>.</strong></p>
+
+    <% if (session.user) { %>
+        <p class="task-count">
+            <strong>You have added <%= userTasksCount %> post<%= userTasksCount === 1 ? '' : 's' %>.</strong>
+        </p>
     <% } %>
 
     <ul class="task-list">
@@ -29,42 +35,44 @@
         %>
             <li class="task-item">
 
+                <!-- Task Title -->
                 <div class="task-title">
                     <%= task.title %>
                 </div>
 
-                <div class="task-description">
-                    <%= task.description %>
+                <!-- Added By -->
+                <div class="task-user" style="font-size: 14px; margin-top: 5px; opacity: 0.8; color: #ced4da;">
+                    Added by: <strong><%= task.userName || "Unknown User" %></strong>
                 </div>
 
-                <!-- Added By Username -->
-                <div class="task-user">
-                    Added by: 
-                    <strong>
-                        <%= task.userName ? task.userName : "Unknown User" %>
-                    </strong>
+                <!-- Description -->
+                <div class="task-description">
+                    <%= task.description %>
                 </div>
 
                 <!-- Buttons only for owner -->
                 <% if (
                     session.user &&
-                    task.userId && 
+                    task.userId &&
                     session.user._id.toString() === task.userId.toString()
                 ) { %>
+
                     <div class="task-actions">
                         <a href="/update/<%= task._id %>" class="update-item">Update</a>
                         <a href="#" onclick="confirmDelete('<%= task._id %>')" class="delete-item">Delete</a>
                     </div>
+
                 <% } %>
 
             </li>
         <% } %>
     </ul>
+
 </div>
 
 <!-- Footer -->
 <footer class="footer">
-    &copy; 2025 Jagdish pandey. All rights reserved.
+    &copy; 2025 Jagdish Pandey. All rights reserved.
 </footer>
 
 <!-- SweetAlert2 CDN -->
