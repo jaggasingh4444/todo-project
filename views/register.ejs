@@ -98,16 +98,16 @@ h2 {
     box-shadow: 0 0 8px rgba(37,117,252,0.4);
 }
 
-/* Show password icon inside input group */
+/* Show password icon inside input group - FIXED ALIGNMENT */
 .icon-container {
     position: absolute;
     right: 10px;
-    top: 50%;
-    transform: translateY(-45%); /* <-- changed from -50% to -45% */
+    top: 0;
+    height: 100%;
     display: flex;
+    align-items: center; /* vertically center the icon */
     gap: 8px;
 }
-
 
 .icon-container i {
     cursor: pointer;
