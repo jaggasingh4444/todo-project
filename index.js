@@ -3,7 +3,7 @@ import path from 'path';
 import { MongoClient, ObjectId } from 'mongodb';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
-import 'dotenv/config'; // loads .env automatically
+import 'dotenv/config';
 
 const app = express();
 const publicPath = path.resolve('public');
@@ -47,9 +47,7 @@ app.use((req, res, next) => {
 
 // AUTH CHECK
 function checkAuth(req, resp, next) {
-    if (!req.session.user) {
-        return resp.redirect("/login");
-    }
+    if (!req.session.user) return resp.redirect("/login");
     next();
 }
 
@@ -100,6 +98,7 @@ app.post("/register", async (req, res) => {
         created_at: new Date(),
     });
 
+    // ✅ Redirect to login, do not auto-login
     res.redirect("/login");
 });
 
@@ -111,12 +110,13 @@ app.get("/logout", (req, res) => {
 
 // ---------------------- TODO ROUTES ----------------------
 
-// LIST TASKS
+// LIST TASKS → Only for logged-in user
 app.get("/", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
 
-    const result = await collection.find().toArray();
+    // ⭐ Only user's tasks
+    const result = await collection.find({ userId: req.session.user._id }).toArray();
 
     resp.render("list", { result });
 });
@@ -140,26 +140,23 @@ app.post("/add", checkAuth, async (req, resp) => {
         const newTask = {
             title: req.body.title,
             description: descriptionWithDate,
-            userId: req.session.user._id,  
-            userName: req.session.user.name,  // ⭐ NEW
+            userId: req.session.user._id,  // store userId
+            userName: req.session.user.name,  // store userName
             completed: false,
             created_at: today
         };
 
         const result = await collection.insertOne(newTask);
 
-        if (result.insertedId) {
-            resp.redirect("/add?success=1");
-        } else {
-            resp.redirect("/add?success=0");
-        }
+        if (result.insertedId) resp.redirect("/add?success=1");
+        else resp.redirect("/add?success=0");
     } catch (err) {
         console.log(err);
         resp.redirect("/add?success=0");
     }
 });
 
-// DELETE TASK
+// DELETE TASK → Only for owner
 app.get("/delete/:id", checkAuth, async (req, resp) => {
     try {
         const db = await connection();
@@ -170,18 +167,15 @@ app.get("/delete/:id", checkAuth, async (req, resp) => {
             userId: req.session.user._id
         });
 
-        if (result.deletedCount > 0) {
-            resp.redirect("/");
-        } else {
-            resp.send("❌ You can delete only your own tasks!");
-        }
+        if (result.deletedCount > 0) resp.redirect("/");
+        else resp.send("❌ You can delete only your own tasks!");
     } catch (err) {
         console.log(err);
         resp.send("Error deleting task");
     }
 });
 
-// UPDATE PAGE
+// UPDATE TASK PAGE → Only for owner
 app.get("/update/:id", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
@@ -191,14 +185,11 @@ app.get("/update/:id", checkAuth, async (req, resp) => {
         userId: req.session.user._id
     });
 
-    if (result) {
-        resp.render("update", { result });
-    } else {
-        resp.send("❌ You can update only your own tasks!");
-    }
+    if (result) resp.render("update", { result });
+    else resp.send("❌ You can update only your own tasks!");
 });
 
-// UPDATE TASK
+// UPDATE TASK POST → Only for owner
 app.post("/update/:id", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
@@ -215,17 +206,11 @@ app.post("/update/:id", checkAuth, async (req, resp) => {
     }
 
     const result = await collection.updateOne(
-        {
-            _id: new ObjectId(id),
-            userId: req.session.user._id
-        },
-        {
-            $set: { title, description: updatedDescription }
-        }
+        { _id: new ObjectId(id), userId: req.session.user._id },
+        { $set: { title, description: updatedDescription } }
     );
 
     if (result.matchedCount > 0) return resp.redirect("/");
-
     resp.send("❌ You cannot update another user's task");
 });
 
