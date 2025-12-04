@@ -54,7 +54,6 @@ h2 {
     color: #333;
 }
 
-/* Clear all icon at top-right */
 .clear-all {
     position: absolute;
     top: 15px;
@@ -84,7 +83,7 @@ h2 {
 }
 
 .form-group input {
-    padding: 10px 12px;
+    padding: 10px 40px 10px 12px; /* add right padding for the icon */
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 15px;
@@ -98,15 +97,12 @@ h2 {
     box-shadow: 0 0 8px rgba(37,117,252,0.4);
 }
 
-/* Show password icon inside input group - FIXED ALIGNMENT */
+/* Eye icon aligned correctly */
 .icon-container {
     position: absolute;
-    right: 10px;
-    top: 0;
-    height: 100%;
-    display: flex;
-    align-items: center; /* vertically center the icon */
-    gap: 8px;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
 }
 
 .icon-container i {
@@ -157,33 +153,16 @@ p a:hover {
     color: #6a11cb;
 }
 
-/* Mobile Adjustments */
 @media (max-width: 480px) {
     .register-wrapper {
         padding: 25px 15px;
     }
-    h2 { 
-        font-size: 22px; 
-    }
-    .form-group label { 
-        font-size: 13px; 
-    }
-    .form-group input { 
-        font-size: 14px; 
-        padding: 8px 10px; 
-    }
-    .icon-container i { 
-        font-size: 14px; 
-    }
-    button { 
-        font-size: 14px; 
-        padding: 10px; 
-    }
-    .clear-all { 
-        font-size: 16px; 
-        top: 10px; 
-        right: 10px; 
-    }
+    h2 { font-size: 22px; }
+    .form-group label { font-size: 13px; }
+    .form-group input { font-size: 14px; padding: 8px 35px 8px 10px; }
+    .icon-container i { font-size: 14px; }
+    button { font-size: 14px; padding: 10px; }
+    .clear-all { font-size: 16px; top: 10px; right: 10px; }
 }
 </style>
 </head>
@@ -191,10 +170,7 @@ p a:hover {
 
 <div class="register-wrapper">
     <h2>Create Account</h2>
-
-    <!-- Clear All Icon -->
     <i class="fa-solid fa-arrows-rotate clear-all" title="Clear All Fields" onclick="clearAllFields()"></i>
-
     <p class="error" id="error"><%= error %></p>
 
     <form id="registerForm" action="/register" method="POST">
@@ -235,7 +211,6 @@ function togglePassword(id) {
     input.type = input.type === "password" ? "text" : "password";
 }
 
-// Clear all fields
 function clearAllFields() {
     document.getElementById('name').value = '';
     document.getElementById('email').value = '';
@@ -244,7 +219,6 @@ function clearAllFields() {
     document.getElementById('error').textContent = '';
 }
 
-// Password validation
 const form = document.getElementById("registerForm");
 const errorMsg = document.getElementById("error");
 
