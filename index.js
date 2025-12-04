@@ -39,13 +39,13 @@ app.use(
     })
 );
 
-// Make session available in all EJS files
+// Make session available in EJS
 app.use((req, res, next) => {
     res.locals.session = req.session;
     next();
 });
 
-// AUTH MIDDLEWARE
+// AUTH CHECK
 function checkAuth(req, resp, next) {
     if (!req.session.user) {
         return resp.redirect("/login");
@@ -110,11 +110,14 @@ app.get("/logout", (req, res) => {
 
 // ---------------------- TODO ROUTES ----------------------
 
-// LIST TASKS
+// ⭐ UPDATED LIST ROUTE → Show ALL tasks
 app.get("/", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
-    const result = await collection.find({ userId: req.session.user._id }).toArray();
+
+    // SHOW ALL TASKS (public)
+    const result = await collection.find().toArray();
+
     resp.render("list", { result });
 });
 
@@ -136,7 +139,7 @@ app.post("/add", checkAuth, async (req, resp) => {
         const newTask = {
             title: req.body.title,
             description: descriptionWithDate,
-            userId: req.session.user._id,
+            userId: req.session.user._id, // owner
             completed: false,
             created_at: today
         };
@@ -154,7 +157,7 @@ app.post("/add", checkAuth, async (req, resp) => {
     }
 });
 
-// DELETE TASK (only owner)
+// DELETE TASK (owner only)
 app.get("/delete/:id", checkAuth, async (req, resp) => {
     try {
         const db = await connection();
@@ -176,7 +179,7 @@ app.get("/delete/:id", checkAuth, async (req, resp) => {
     }
 });
 
-// SHOW UPDATE PAGE (only owner)
+// SHOW UPDATE PAGE (owner only)
 app.get("/update/:id", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
@@ -193,7 +196,7 @@ app.get("/update/:id", checkAuth, async (req, resp) => {
     }
 });
 
-// UPDATE TASK POST (only owner)
+// UPDATE TASK (owner only)
 app.post("/update/:id", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
