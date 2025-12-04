@@ -196,17 +196,35 @@ p a:hover {
 
     <p class="error"><%= error %></p>
 
-    <form action="/login" method="POST">
+    <!-- 🔥 FIXED FORM -->
+    <form action="/login" method="POST" autocomplete="off">
+
+        <!-- Fake fields (Chrome will not autofill your real ones) -->
+        <input type="text" name="dummyuser" style="display:none" autocomplete="off">
+        <input type="password" name="dummypass" style="display:none" autocomplete="new-password">
+
         <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" required>
+            <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                required 
+                autocomplete="off"
+            >
         </div>
 
         <div class="form-group">
             <label for="password">Password</label>
             <div class="password-wrapper">
-                <input type="password" id="password" name="password" required>
-                <i class="fa-solid fa-eye" id="togglePassword" title="Show/Hide Password" onclick="togglePassword('password', this)"></i>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    autocomplete="new-password"
+                >
+                <i class="fa-solid fa-eye" id="togglePassword" onclick="togglePassword('password', this)"></i>
             </div>
         </div>
 
