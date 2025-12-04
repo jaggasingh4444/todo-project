@@ -74,7 +74,7 @@ app.post("/login", async (req, res) => {
     if (!match) return res.render("login", { error: "Incorrect password!" });
 
     req.session.user = user;
-    res.redirect("/add");
+    res.redirect("/");
 });
 
 // REGISTER PAGE
@@ -92,6 +92,7 @@ app.post("/register", async (req, res) => {
     if (existing) return res.render("register", { error: "Email already registered!" });
 
     const hashed = await bcrypt.hash(password, 10);
+
     await users.insertOne({
         name,
         email,
@@ -110,12 +111,11 @@ app.get("/logout", (req, res) => {
 
 // ---------------------- TODO ROUTES ----------------------
 
-// ⭐ UPDATED LIST ROUTE → Show ALL tasks
+// LIST TASKS
 app.get("/", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
 
-    // SHOW ALL TASKS (public)
     const result = await collection.find().toArray();
 
     resp.render("list", { result });
@@ -134,12 +134,14 @@ app.post("/add", checkAuth, async (req, resp) => {
 
         const today = new Date();
         const formattedDate = today.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+
         const descriptionWithDate = `[Added on: ${formattedDate}] ${req.body.description}`;
 
         const newTask = {
             title: req.body.title,
             description: descriptionWithDate,
-            userId: req.session.user._id, // owner
+            userId: req.session.user._id,  
+            userName: req.session.user.name,  // ⭐ NEW
             completed: false,
             created_at: today
         };
@@ -157,7 +159,7 @@ app.post("/add", checkAuth, async (req, resp) => {
     }
 });
 
-// DELETE TASK (owner only)
+// DELETE TASK
 app.get("/delete/:id", checkAuth, async (req, resp) => {
     try {
         const db = await connection();
@@ -179,7 +181,7 @@ app.get("/delete/:id", checkAuth, async (req, resp) => {
     }
 });
 
-// SHOW UPDATE PAGE (owner only)
+// UPDATE PAGE
 app.get("/update/:id", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
@@ -196,7 +198,7 @@ app.get("/update/:id", checkAuth, async (req, resp) => {
     }
 });
 
-// UPDATE TASK (owner only)
+// UPDATE TASK
 app.post("/update/:id", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
@@ -206,6 +208,7 @@ app.post("/update/:id", checkAuth, async (req, resp) => {
 
     const task = await collection.findOne({ _id: new ObjectId(id) });
     let updatedDescription = description;
+
     if (task && task.description.startsWith("[Added on:")) {
         const datePart = task.description.split("]")[0] + "]";
         updatedDescription = `${datePart} ${description.replace(datePart, "").trim()}`;
@@ -221,9 +224,7 @@ app.post("/update/:id", checkAuth, async (req, resp) => {
         }
     );
 
-    if (result.matchedCount > 0) {
-        return resp.redirect("/");
-    }
+    if (result.matchedCount > 0) return resp.redirect("/");
 
     resp.send("❌ You cannot update another user's task");
 });
