@@ -98,8 +98,7 @@ app.post("/register", async (req, res) => {
         created_at: new Date(),
     });
 
-    // ✅ Redirect to login, do not auto-login
-    res.redirect("/login");
+    res.redirect("/login"); // do NOT auto-login
 });
 
 // LOGOUT
@@ -110,14 +109,12 @@ app.get("/logout", (req, res) => {
 
 // ---------------------- TODO ROUTES ----------------------
 
-// LIST TASKS → Only for logged-in user
+// LIST TASKS → Show ALL tasks
 app.get("/", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
 
-    // ⭐ Only user's tasks
-    const result = await collection.find({ userId: req.session.user._id }).toArray();
-
+    const result = await collection.find().toArray(); // all tasks
     resp.render("list", { result });
 });
 
@@ -134,14 +131,13 @@ app.post("/add", checkAuth, async (req, resp) => {
 
         const today = new Date();
         const formattedDate = today.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-
         const descriptionWithDate = `[Added on: ${formattedDate}] ${req.body.description}`;
 
         const newTask = {
             title: req.body.title,
             description: descriptionWithDate,
-            userId: req.session.user._id,  // store userId
-            userName: req.session.user.name,  // store userName
+            userId: req.session.user._id,
+            userName: req.session.user.name,
             completed: false,
             created_at: today
         };
@@ -156,7 +152,7 @@ app.post("/add", checkAuth, async (req, resp) => {
     }
 });
 
-// DELETE TASK → Only for owner
+// DELETE TASK → Only owner can delete
 app.get("/delete/:id", checkAuth, async (req, resp) => {
     try {
         const db = await connection();
@@ -175,7 +171,7 @@ app.get("/delete/:id", checkAuth, async (req, resp) => {
     }
 });
 
-// UPDATE TASK PAGE → Only for owner
+// UPDATE TASK PAGE → Only owner can update
 app.get("/update/:id", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
@@ -189,7 +185,7 @@ app.get("/update/:id", checkAuth, async (req, resp) => {
     else resp.send("❌ You can update only your own tasks!");
 });
 
-// UPDATE TASK POST → Only for owner
+// UPDATE TASK POST → Only owner can update
 app.post("/update/:id", checkAuth, async (req, resp) => {
     const db = await connection();
     const collection = db.collection(todoCollection);
