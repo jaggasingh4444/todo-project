@@ -45,6 +45,7 @@ body::before {
     border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     position: relative;
+    z-index: 1;
 }
 
 h2 {
@@ -70,10 +71,10 @@ h2 {
 }
 
 .form-group {
-    position: relative;
     display: flex;
     flex-direction: column;
     margin-bottom: 15px;
+    position: relative;
 }
 
 .form-group label {
@@ -85,13 +86,22 @@ h2 {
 
 .form-group input {
     width: 100%;
-    padding: 10px 40px 10px 12px; /* right padding for eye icon */
+    padding: 10px 12px;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 15px;
 }
 
-.eye-icon {
+/* Password wrapper for eye icon */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 40px; /* space for eye icon */
+}
+
+.password-wrapper i {
     position: absolute;
     right: 12px;
     top: 50%;
@@ -99,10 +109,10 @@ h2 {
     cursor: pointer;
     color: #2575fc;
     font-size: 16px;
-    user-select: none;
+    transition: color 0.3s ease;
 }
 
-.eye-icon:hover {
+.password-wrapper i:hover {
     color: #6a11cb;
 }
 
@@ -143,13 +153,13 @@ p a:hover {
     color: #6a11cb;
 }
 
-/* Mobile Adjustments */
+/* Mobile adjustments */
 @media (max-width: 480px) {
     .register-wrapper { padding: 25px 15px; }
     h2 { font-size: 22px; }
     .form-group label { font-size: 13px; }
-    .form-group input { font-size: 14px; padding: 8px 35px 8px 10px; }
-    .eye-icon { font-size: 14px; }
+    .form-group input { font-size: 14px; padding: 8px 10px; }
+    .password-wrapper i { font-size: 14px; }
     button { font-size: 14px; padding: 10px; }
     .clear-all { font-size: 16px; top: 10px; right: 10px; }
 }
@@ -166,6 +176,7 @@ p a:hover {
     <p class="error" id="error"><%= error %></p>
 
     <form id="registerForm" action="/register" method="POST">
+
         <div class="form-group">
             <label for="name">Name</label>
             <input type="text" id="name" name="name" required>
@@ -176,16 +187,16 @@ p a:hover {
             <input type="email" id="email" name="email" required>
         </div>
 
-        <div class="form-group">
+        <div class="form-group password-wrapper">
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
-            <span class="eye-icon" onclick="togglePassword('password')"><i class="fa-solid fa-eye"></i></span>
+            <i class="fa-solid fa-eye" id="togglePassword1" onclick="togglePassword('password', this)"></i>
         </div>
 
-        <div class="form-group">
+        <div class="form-group password-wrapper">
             <label for="confirmPassword">Confirm Password</label>
             <input type="password" id="confirmPassword" name="confirmPassword" required>
-            <span class="eye-icon" onclick="togglePassword('confirmPassword')"><i class="fa-solid fa-eye"></i></span>
+            <i class="fa-solid fa-eye" id="togglePassword2" onclick="togglePassword('confirmPassword', this)"></i>
         </div>
 
         <button type="submit">Register</button><br><br>
@@ -194,9 +205,17 @@ p a:hover {
 </div>
 
 <script>
-function togglePassword(id) {
+function togglePassword(id, icon) {
     const input = document.getElementById(id);
-    input.type = input.type === "password" ? "text" : "password";
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
 }
 
 // Clear all fields
