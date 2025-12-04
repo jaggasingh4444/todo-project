@@ -13,7 +13,6 @@
     <h1 style="color: #FFFFFF; font-size: 32px; font-weight: 700; margin-bottom: 20px;">
     Latest Post</h1>
 
-
     <% 
         let userTasksCount = 0;
         if(session.user) {
@@ -38,6 +37,14 @@
                     <%= task.description %>
                 </div>
 
+                <!-- Added By Username -->
+                <div class="task-user">
+                    Added by: 
+                    <strong>
+                        <%= task.userName ? task.userName : "Unknown User" %>
+                    </strong>
+                </div>
+
                 <!-- Buttons only for owner -->
                 <% if (
                     session.user &&
@@ -56,33 +63,32 @@
 </div>
 
 <!-- Footer -->
-    <footer class="footer">
-        &copy; 2025 Jagdish pandey. All rights reserved.
-    </footer>
+<footer class="footer">
+    &copy; 2025 Jagdish pandey. All rights reserved.
+</footer>
 
-    <!-- SweetAlert2 CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Delete Confirmation -->
-    <script>
-    function confirmDelete(id) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This task will be permanently deleted!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it",
-            cancelButtonText: "Cancel",
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "/delete/" + id;
-            }
-        });
-    }
-    </script>
-
+<!-- Delete Confirmation -->
+<script>
+function confirmDelete(id) {
+    Swal.fire({
+        title: "Are you sure?",
+        text: "This task will be permanently deleted!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "/delete/" + id;
+        }
+    });
+}
+</script>
 
 </body>
 </html>
